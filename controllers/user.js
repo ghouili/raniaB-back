@@ -124,6 +124,21 @@ const GetAllAdmins = async (req, res) => {
 
 }
 
+const GetAllFinance = async (req, res) => {
+
+    const {active} = req.body;
+
+    let allUser;
+    try {
+        allUser = await user.find({ role: 'finance'});
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'internal server error when find', data: error });
+    }
+
+    return res.status(200).json({ success: true, message: 'all users', data: allUser });
+
+}
+
 const FindById = async (req, res) => {
 
     const { id } = req.params;
@@ -176,7 +191,8 @@ const Add = async (req, res) => {
         name,
         role,
         avatar,
-        password: hashedPassword
+        password: hashedPassword,
+        active: true
     });
 
     try {
@@ -220,7 +236,6 @@ const Add = async (req, res) => {
     return res.status(201).json({ success: true, message: 'user added successfully', data: NewUser });
 
 }
-
 
 const Update = async (req, res) => {
 
@@ -283,12 +298,24 @@ const DeleteUser = async (req, res) => {
     if (!existingUser) {
         return res.status(200).json({ success: false, message: 'user donst exist!!', data: null });
     }
+
    
 
     try {
         await existingUser.deleteOne();
     } catch (error) {
         return res.status(500).json({ success: false, message: 'internal server error', data: error });
+    }
+
+    if (existingUser.avatar) {
+        let path = `./uploads/images/${existingUser.avatar}`;
+        try {
+            fs.unlinkSync(path)
+            //file removed
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: error, error: error })
+        }
     }
 
     return res.status(200).json({ success: true, message: 'user deleted successfully', data: null });
@@ -406,6 +433,146 @@ const Add_PDV = async (req, res) => {
 
 }
 
+const Add_Finance = async (req, res) => {
+
+    const { email, name, tel, adress, matricule, role } = req.body;
+
+    let avatar = 'avatar.png';
+    if (req.file) {
+        avatar = req.file.filename;
+    }
+
+    let existingUser;
+    try {
+        existingUser = await user.findOne({ email: email });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'internalm error server', data: error });
+    }
+
+    if (existingUser) {
+        return res.status(200).json({ success: false, message: 'user already exist!!', data: null });
+    }
+
+    let password = generator.generate({
+        length: 8,
+        numbers: true
+    });
+    // let password = 'secret';
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const NewUser = new user({
+        email,
+        name,
+        role,
+        avatar,
+        tel,
+        adress,
+        matricule,
+        password: hashedPassword,
+        active: true
+    });
+
+    try {
+        await NewUser.save();
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'internal server error', data: error });
+    }
+
+    var transporter = nodemailer.createTransport({
+        // host: "smtp.mailtrap.io",
+        service: "gmail",
+        // port: 2525,
+        auth: {
+            user: "sebntn.contact@gmail.com",
+            pass: "joucivcesyymsnjd"
+        }
+    });
+
+    let info = await transporter.sendMail({
+        from: 'sebntn.contact@gmail.com', // sender address
+        to: email, // list of receivers
+        subject: "New Account Created", // Subject line
+        // text: "Hello world?", // plain text body
+        html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 20px;">
+            <h1 style="text-align: center; color: #3d3d3d; margin-bottom: 40px;">Welcome to Our App!</h1>
+            <p style="font-size: 18px; color: #3d3d3d;">Dear ${name},</p>
+            <p style="font-size: 18px; color: #3d3d3d;">Your new account has been successfully created in our App as a(n) <strong>${role}</strong>.</p>
+            <p style="font-size: 18px; color: #3d3d3d;">Please keep your password in a safe place. You can change your password anytime by logging into your account.</p>
+            <p style="font-size: 18px; color: #3d3d3d;">Here is your password: <strong>${password}</strong></p>
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="https://www.google.com/" style="display: inline-block; background-color: #0066ff; color: white; font-size: 18px; padding: 12px 30px; text-decoration: none; border-radius: 30px;">Check out our App</a>
+            </div>
+            <p style="font-size: 16px; color: #666; margin-top: 40px;">Thank you for using our App!</p>
+        </div>
+    </div>
+        `, // html body
+    });
+
+    return res.status(201).json({ success: true, message: 'user added successfully', data: NewUser });
+
+}
+
+const Update_Finance = async (req, res) => {
+
+    const { email,
+        name,
+        tel,
+        adress,
+        matricule,
+         } = req.body;
+    const { id } = req.params;
+
+    let existingUser;
+    try {
+        existingUser = await user.findById(id);
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'internalm error server', data: error });
+    }
+
+    if (!existingUser) {
+        return res.status(200).json({ success: false, message: 'user donst exist!!', data: null });
+    }
+
+    if (req.body.password) {
+
+        existingUser.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    if (req.file && existingUser.avatar) {
+        let path = `./uploads/images/${existingUser.avatar}`;
+        try {
+            fs.unlinkSync(path)
+            //file removed
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: error, error: error })
+        }
+        existingUser.avatar = req.file.filename;
+
+    }
+    if(req.body.role) {
+        existingUser.role = req.body.role;
+    }
+
+    existingUser.name = name;
+    existingUser.email = email;
+    existingUser.tel = tel;
+    existingUser.adress = adress;
+    existingUser.matricule = matricule;
+
+    try {
+        await existingUser.save();
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'internal server error', data: error });
+    }
+
+    return res.status(200).json({ success: true, message: 'user updated successfully', data: existingUser });
+
+}
+
 const Update_PDV = async (req, res) => {
 
     const { email, name, role, tel, ville, adress, register_comm, shop_name, secter } = req.body;
@@ -516,6 +683,8 @@ const Lock = async (req, res) => {
 exports.test = test
 exports.Register = Register
 exports.GetAllAdmins = GetAllAdmins
+exports.GetAllFinance = GetAllAdmins
+exports.GetAllFinance = GetAllFinance
 exports.GetAllPdv = GetAllPdv
 exports.GetRequestPdv = GetRequestPdv
 exports.FindById = FindById
@@ -527,3 +696,5 @@ exports.Add = Add
 exports.Add_PDV = Add_PDV
 exports.Lock = Lock
 exports.GetAll = GetAll
+exports.Add_Finance = Add_Finance
+exports.Update_Finance = Update_Finance

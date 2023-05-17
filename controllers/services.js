@@ -1,50 +1,49 @@
 const service = require("../models/services");
 
 const AddService = async (req, res) => {
-    const { nom, description, 
+    const { nom, description,
         critere_eligibility,
-    document_requis,
-    delai_traitement,
-    //Simulation,
-    montant_min,
-    montant_max} = req.body;
-    
-        let existingService;
-        try {
-            existingService = await service.findOne({Nom: nom });
-        } catch (error) {
-            return res.status(500).json({ success: false, message: ' error server', data: error });
-        }
-    
-        if (existingService) {
-            return res.status(200).json({ success: false, message: 'Service already exist!!', data: null });
-        }
-        
-       
-    
-        const NewService = new service({
-            
-            nom,
-            description,
-            critere_eligibility,
-            document_requis,
-            delai_traitement,
-            //Simulation,
-            montant_min,
-            montant_max,
-            avatar: 'avatar.png',
-          
-        });
-    
-        try {
-            await NewService.save();
-        } catch (error) {
-            return res.status(500).json({ success: false, message: ' server error', data: error  });
-        }
-    
-        return res.status(201).json({ success: true, message: 'Service added successfully', data: NewService});
-    
+        document_requis,
+        delai_traitement,
+        montant_min,
+        montant_max } = req.body;
+
+    let picture = 'service.jpg';
+    if (req.file) {
+        picture = req.file.filename;
+    }
+    let existingService;
+    try {
+        existingService = await service.findOne({ Nom: nom });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: ' error server', data: error });
+    }
+
+    if (existingService) {
+        return res.status(200).json({ success: false, message: 'Service already exist!!', data: null });
+    }
+
+    const NewService = new service({
+        nom,
+        description,
+        critere_eligibility,
+        document_requis,
+        delai_traitement,
+        montant_min,
+        montant_max,
+        picture
+    });
+
+    try {
+        await NewService.save();
+    } catch (error) {
+        return res.status(500).json({ success: false, message: ' server error', data: error });
+    }
+
+    return res.status(201).json({ success: true, message: 'Service added successfully', data: NewService });
+
 }
+
 const GetAll = async (req, res) => {
 
     let allService;
@@ -58,7 +57,7 @@ const GetAll = async (req, res) => {
 
 }
 
-const FindById = async (req , res) => {
+const FindById = async (req, res) => {
 
     const { id } = req.params;
 
@@ -79,11 +78,10 @@ const FindById = async (req , res) => {
 
 const Update = async (req, res) => {
 
-    const {  nom, description,  
+    const { nom, description,
         critere_eligibility,
         document_requis,
         delai_traitement,
-        //Simulation,
         montant_min,
         montant_max } = req.body;
     const { id } = req.params;
@@ -99,15 +97,27 @@ const Update = async (req, res) => {
         return res.status(200).json({ success: false, message: 'Service existe pas!!', data: null });
     }
 
-    
+    if (req.file && existingService.picture) {
+        let path = `./uploads/images/${existingService.picture}`;
+        try {
+            fs.unlinkSync(path)
+            //file removed
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: error, error: error })
+        }
+        existingService.picture = req.file.filename;
+
+    }
+
     existingService.critere_eligibility = critere_eligibility;
     existingService.document_requis = document_requis;
     existingService.delai_traitement = delai_traitement;
     existingService.description = description;
     existingService.nom = nom;
-    ///existingService.Simulation = Simulation;
-    existingService. montant_min =  montant_min;
+    existingService.montant_min = montant_min;
     existingService.montant_max = montant_max;
+    existingService.picture = picture;
 
     try {
         await existingService.save();
@@ -138,12 +148,23 @@ const DeleteService = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ success: false, message: 'server error', data: error });
     }
+    if (existingService.picture) {
+        let path = `./uploads/images/${existingService.avatar}`;
+        try {
+            fs.unlinkSync(path)
+            //file removed
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: error, error: error })
+        }
+
+    }
 
     return res.status(200).json({ success: true, message: ' deleted successfully', data: null });
 }
 
-exports.AddService=AddService
-exports.GetAll=GetAll
-exports.FindById=FindById
-exports.Update=Update
-exports.DeleteService=DeleteService
+exports.AddService = AddService
+exports.GetAll = GetAll
+exports.FindById = FindById
+exports.Update = Update
+exports.DeleteService = DeleteService

@@ -15,6 +15,7 @@ const UserSchema =  new mongoose.Schema({
     secter: {type: String},
     patent: {type: String},
     cin: {type: String},
+    matricule: {type: String, default: null},
     active: {type: mongoose.Schema.Types.Mixed},
     
 });
