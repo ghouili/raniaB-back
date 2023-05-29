@@ -7,6 +7,8 @@ route.post('/add', fileuploader.single('picture'), offreController.Addoffre);
 
 route.get('/', offreController.GetAll);
 
+route.get('/pack/:id', offreController.FindByPack);
+
 route.get('/:id', offreController.FindById);
 
 route.put('/:id', fileuploader.single('picture'), offreController.Update);

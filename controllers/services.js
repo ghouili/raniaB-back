@@ -5,8 +5,8 @@ const AddService = async (req, res) => {
         critere_eligibility,
         document_requis,
         delai_traitement,
-        montant_min,
-        montant_max } = req.body;
+        userid
+    } = req.body;
 
     let picture = 'service.jpg';
     if (req.file) {
@@ -23,15 +23,28 @@ const AddService = async (req, res) => {
         return res.status(200).json({ success: false, message: 'Service already exist!!', data: null });
     }
 
+    let existingUser;
+    try {
+        existingUser = await user.findById(userid);
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'internalm error server', data: error });
+    }
+
+    let etat = false;
+
+    if (existingUser?.role === 'admin') {
+        etat = true;
+    }
+
     const NewService = new service({
         nom,
         description,
         critere_eligibility,
         document_requis,
         delai_traitement,
-        montant_min,
-        montant_max,
-        picture
+        picture,
+        etat,
+        credits: []
     });
 
     try {
@@ -81,9 +94,7 @@ const Update = async (req, res) => {
     const { nom, description,
         critere_eligibility,
         document_requis,
-        delai_traitement,
-        montant_min,
-        montant_max } = req.body;
+        delai_traitement } = req.body;
     const { id } = req.params;
 
     let existingService;
@@ -115,8 +126,6 @@ const Update = async (req, res) => {
     existingService.delai_traitement = delai_traitement;
     existingService.description = description;
     existingService.nom = nom;
-    existingService.montant_min = montant_min;
-    existingService.montant_max = montant_max;
     existingService.picture = picture;
 
     try {

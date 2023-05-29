@@ -1,11 +1,14 @@
 const offre = require("../models/offre");
+const services = require("../models/services");
+const fs = require('fs');
 
 const Addoffre = async (req, res) => {
     const {
         title,
         description,
         montant_min,
-        montant_max
+        montant_max,
+        packid
     } = req.body;
 
     let picture = 'service.jpg';
@@ -17,11 +20,21 @@ const Addoffre = async (req, res) => {
         description,
         montant_min,
         montant_max,
-        picture
+        picture,
+        packid
     });
+
+    let existingService;
+    try {
+        existingService = await services.findById(packid);
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'error server', data: error });
+    }
 
     try {
         await Newoffre.save();
+        existingService.credits.push(Newoffre);
+        await existingService.save();
     } catch (error) {
         return res.status(500).json({ success: false, message: ' server error', data: error });
     }
@@ -34,7 +47,7 @@ const GetAll = async (req, res) => {
 
     let alloffre;
     try {
-        alloffre = await offre.find();
+        alloffre = await offre.find().populate('packid');
     } catch (error) {
         return res.status(500).json({ success: false, message: ' server error ', data: error });
     }
@@ -49,7 +62,26 @@ const FindById = async (req, res) => {
 
     let existingoffre;
     try {
-        existingoffre = await offre.findById(id);
+        existingoffre = await offre.findById(id).populate('packid');
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'error server', data: error });
+    }
+
+    if (!existingoffre) {
+        return res.status(200).json({ success: false, message: 'offre exist pas!!', data: null });
+    }
+
+    return res.status(200).json({ success: true, message: 'offre founded successfully', data: existingoffre });
+
+}
+
+const FindByPack = async (req, res) => {
+
+    const { id } = req.params;
+
+    let existingoffre;
+    try {
+        existingoffre = await offre.find({packid:id}).populate('packid');
     } catch (error) {
         return res.status(500).json({ success: false, message: 'error server', data: error });
     }
@@ -68,7 +100,8 @@ const Update = async (req, res) => {
         title,
         description,
         montant_min,
-        montant_max
+        montant_max,
+        packid
     } = req.body;
     const { id } = req.params;
 
@@ -100,6 +133,7 @@ const Update = async (req, res) => {
     existingoffre.description = description;
     existingoffre.montant_min = montant_min;
     existingoffre.montant_max = montant_max;
+    existingoffre.packid = packid;
 
     try {
         await existingoffre.save();
@@ -132,7 +166,7 @@ const Deleteoffre = async (req, res) => {
     }
 
     if (existingoffre.picture) {
-        let path = `./uploads/images/${existingoffre.avatar}`;
+        let path = `./uploads/images/${existingoffre.picture}`;
         try {
             fs.unlinkSync(path)
             //file removed
@@ -150,5 +184,6 @@ const Deleteoffre = async (req, res) => {
 exports.Addoffre = Addoffre
 exports.GetAll = GetAll
 exports.FindById = FindById
+exports.FindByPack = FindByPack
 exports.Update = Update
 exports.Deleteoffre = Deleteoffre

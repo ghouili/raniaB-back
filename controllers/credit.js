@@ -8,9 +8,9 @@ const Addcredit = async (req, res) => {
         duree,
         grasse,
         payed,
-        etat,
         rembource,
         packid,
+        offreid,
         userid
     } = req.body;
 
@@ -20,10 +20,10 @@ const Addcredit = async (req, res) => {
         duree,
         grasse,
         payed,
-        etat,
         date : moment().format('LLL'),
         rembource,
         packid,
+        offreid,
         userid
     });
 
@@ -41,6 +41,8 @@ const GetAll = async (req, res) => {
 
     let allcredit;
     try {
+        // allcredit = await credit.deleteMany({});
+        // allcredit = await credit.find().populate('packid','service');
         allcredit = await credit.find();
     } catch (error) {
         return res.status(500).json({ success: false, message: ' server error ', data: error });
