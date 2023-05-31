@@ -1,4 +1,6 @@
 const service = require("../models/services");
+const user = require("../models/user");
+const fs = require('fs');
 
 const AddService = async (req, res) => {
     const { nom, description,
@@ -7,6 +9,7 @@ const AddService = async (req, res) => {
         delai_traitement,
         userid
     } = req.body;
+    console.log(req.body);
 
     let picture = 'service.jpg';
     if (req.file) {
@@ -109,13 +112,15 @@ const Update = async (req, res) => {
     }
 
     if (req.file && existingService.picture) {
-        let path = `./uploads/images/${existingService.picture}`;
-        try {
-            fs.unlinkSync(path)
-            //file removed
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ success: false, message: error, error: error })
+        if (existingService.picture !== 'service.jpg'){
+            let path = `./uploads/images/${existingService.picture}`;
+            try {
+                fs.unlinkSync(path)
+                //file removed
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ success: false, message: error, error: error })
+            }
         }
         existingService.picture = req.file.filename;
 
@@ -126,7 +131,6 @@ const Update = async (req, res) => {
     existingService.delai_traitement = delai_traitement;
     existingService.description = description;
     existingService.nom = nom;
-    existingService.picture = picture;
 
     try {
         await existingService.save();
@@ -158,7 +162,7 @@ const DeleteService = async (req, res) => {
         return res.status(500).json({ success: false, message: 'server error', data: error });
     }
     if (existingService.picture) {
-        let path = `./uploads/images/${existingService.avatar}`;
+        let path = `./uploads/images/${existingService.picture}`;
         try {
             fs.unlinkSync(path)
             //file removed

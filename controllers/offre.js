@@ -81,7 +81,7 @@ const FindByPack = async (req, res) => {
 
     let existingoffre;
     try {
-        existingoffre = await offre.find({packid:id}).populate('packid');
+        existingoffre = await offre.find({ packid: id }).populate('packid');
     } catch (error) {
         return res.status(500).json({ success: false, message: 'error server', data: error });
     }
@@ -118,12 +118,14 @@ const Update = async (req, res) => {
 
     if (req.file && existingoffre.picture) {
         let path = `./uploads/images/${existingoffre.picture}`;
-        try {
-            fs.unlinkSync(path)
-            //file removed
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ success: false, message: error, error: error })
+        if (fs.existsSync(path)) {
+            try {
+                fs.unlinkSync(path)
+                //file removed
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ success: false, message: error, error: error })
+            }
         }
         existingoffre.picture = req.file.filename;
 
@@ -167,12 +169,14 @@ const Deleteoffre = async (req, res) => {
 
     if (existingoffre.picture) {
         let path = `./uploads/images/${existingoffre.picture}`;
-        try {
-            fs.unlinkSync(path)
-            //file removed
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ success: false, message: error, error: error })
+        if (fs.existsSync(path)) {
+            try {
+                fs.unlinkSync(path)
+                //file removed
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ success: false, message: error, error: error })
+            }
         }
 
     }

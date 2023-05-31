@@ -14,5 +14,6 @@ route.get('/:id', offreController.FindById);
 route.put('/:id', fileuploader.single('picture'), offreController.Update);
 
 route.delete('/:id', offreController.Deleteoffre);
+route.get('/d/:id', offreController.Deleteoffre);
 
 module.exports = route
