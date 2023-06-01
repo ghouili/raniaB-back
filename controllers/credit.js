@@ -13,6 +13,7 @@ const Addcredit = async (req, res) => {
         offreid,
         userid
     } = req.body;
+    console.log(req.body);
 
     const Newcredit = new credit({
         montant,
@@ -20,7 +21,7 @@ const Addcredit = async (req, res) => {
         duree,
         grasse,
         payed,
-        date : moment().format('LLL'),
+        date: moment().format('LLL'),
         rembource,
         packid,
         offreid,
@@ -132,6 +133,10 @@ const Etat = async (req, res) => {
 
     if (!existingcredit) {
         return res.status(200).json({ success: false, message: 'credit existe pas!!', data: null });
+    }
+
+    if (req.body.montant_ech) {
+        existingcredit.montant_ech = req.body.montant_ech;
     }
 
     existingcredit.etat = etat;
