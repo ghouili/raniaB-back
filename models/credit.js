@@ -4,6 +4,7 @@ const CreditSchema = new mongoose.Schema({
 
     montant:{type:Number} ,
     montant_ech:{type:Number} ,
+    interet:{type:Number, default: 1.25} ,
     duree:{type:Number} ,
     grasse:{type:Number} ,
     payed:{type:Number} ,

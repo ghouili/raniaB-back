@@ -119,9 +119,8 @@ const Update = async (req, res) => {
 
 const Etat = async (req, res) => {
 
-    const {
-        etat,
-    } = req.body;
+    const { etat, interet, duree, grasse, montant_ech } = req.body;
+    console.log(req.body);
     const { id } = req.params;
 
     let existingcredit;
@@ -135,11 +134,24 @@ const Etat = async (req, res) => {
         return res.status(200).json({ success: false, message: 'credit existe pas!!', data: null });
     }
 
-    if (req.body.montant_ech) {
-        existingcredit.montant_ech = req.body.montant_ech;
+    existingcredit.etat = etat;
+
+    if (montant_ech) {
+        existingcredit.montant_ech = montant_ech;
     }
 
-    existingcredit.etat = etat;
+    if(duree){
+        existingcredit.duree = duree;
+    }
+    
+    if(grasse){
+        existingcredit.grasse = grasse;
+    }
+    
+    if(interet){
+        existingcredit.interet = interet;
+    }
+    
     try {
         await existingcredit.save();
     } catch (error) {
