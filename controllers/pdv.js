@@ -126,6 +126,7 @@ const Update = async (req, res) => {
     return res.status(200).json({ success: true, message: 'Pdv updated successfully', data: existingPdv });
 
 }
+
 const DeletePdv = async (req, res) => {
     const { id } = req.params;
 

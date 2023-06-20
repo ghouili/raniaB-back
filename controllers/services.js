@@ -1,3 +1,4 @@
+const offre = require("../models/offre");
 const service = require("../models/services");
 const user = require("../models/user");
 const fs = require('fs');
@@ -112,8 +113,8 @@ const Update = async (req, res) => {
     }
 
     if (req.file && existingService.picture) {
-        if (existingService.picture !== 'service.jpg'){
-            let path = `./uploads/images/${existingService.picture}`;
+        let path = `./uploads/images/${existingService.picture}`;
+        if (existingService.picture !== 'service.jpg' && fs.existsSync(path)) {
             try {
                 fs.unlinkSync(path)
                 //file removed
@@ -158,17 +159,20 @@ const DeleteService = async (req, res) => {
 
     try {
         await existingService.deleteOne();
+        await offre.deleteMany({ packid: id });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'server error', data: error });
     }
     if (existingService.picture) {
         let path = `./uploads/images/${existingService.picture}`;
-        try {
-            fs.unlinkSync(path)
-            //file removed
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ success: false, message: error, error: error })
+        if (existingService.picture !== 'service.jpg' && fs.existsSync(path)) {
+            try {
+                fs.unlinkSync(path)
+                //file removed
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ success: false, message: error, error: error })
+            }
         }
 
     }

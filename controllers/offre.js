@@ -118,7 +118,7 @@ const Update = async (req, res) => {
 
     if (req.file && existingoffre.picture) {
         let path = `./uploads/images/${existingoffre.picture}`;
-        if (fs.existsSync(path)) {
+        if ( existingoffre.picture !== "service.jpg" && fs.existsSync(path)) {
             try {
                 fs.unlinkSync(path)
                 //file removed
@@ -169,7 +169,7 @@ const Deleteoffre = async (req, res) => {
 
     if (existingoffre.picture) {
         let path = `./uploads/images/${existingoffre.picture}`;
-        if (fs.existsSync(path)) {
+        if (existingoffre.picture !== 'service.jpg' && fs.existsSync(path)) {
             try {
                 fs.unlinkSync(path)
                 //file removed

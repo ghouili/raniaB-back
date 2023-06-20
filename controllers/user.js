@@ -4,6 +4,7 @@ const generator = require('generate-password');
 const nodemailer = require("nodemailer");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const axios = require('axios');
 
 const test = async (req, res) => {
     return res.send('user controller works');
@@ -317,7 +318,7 @@ const DeleteUser = async (req, res) => {
 
     if (existingUser.avatar) {
         let path = `./uploads/images/${existingUser.avatar}`;
-        if (fs.existsSync(path)) {
+        if (existingUser.avatar !== 'avatar.png' && fs.existsSync(path)) {
             try {
                 fs.unlinkSync(path)
                 //file removed
@@ -329,22 +330,26 @@ const DeleteUser = async (req, res) => {
     }
     if (existingUser.cin) {
         let path = `./uploads/images/${existingUser.cin}`;
-        try {
-            fs.unlinkSync(path)
-            //file removed
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ success: false, message: error, error: error })
+        if (existingUser.cin !== 'cin.png' && fs.existsSync(path)) {
+            try {
+                fs.unlinkSync(path)
+                //file removed
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ success: false, message: error, error: error })
+            }
         }
     }
     if (existingUser.patent) {
         let path = `./uploads/images/${existingUser.patent}`;
-        try {
-            fs.unlinkSync(path)
-            //file removed
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ success: false, message: error, error: error })
+        if (existingUser.patent !== 'patent.png' && fs.existsSync(path)) {
+            try {
+                fs.unlinkSync(path)
+                //file removed
+            } catch (error) {
+                console.log(error);
+                return res.status(500).json({ success: false, message: error, error: error })
+            }
         }
     }
 
@@ -354,6 +359,8 @@ const DeleteUser = async (req, res) => {
 const Add_PDV = async (req, res) => {
     // console.log(req.body);
     const { email, name, role, tel, ville, adress, register_comm, shop_name, secter, active } = req.body;
+
+
 
     let avatar = 'avatar.png';
     let cin = 'cin.png';
@@ -391,15 +398,11 @@ const Add_PDV = async (req, res) => {
     }
 
 
-    let password;
-    if (req.body.password) {
-        password = req.body.password;
-    } else {
-        password = generator.generate({
-            length: 8,
-            numbers: true
-        });
-    }
+    let password = generator.generate({
+        length: 8,
+        numbers: true
+    });
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -426,6 +429,28 @@ const Add_PDV = async (req, res) => {
         console.log(error);
         return res.status(500).json({ success: false, message: 'internal server error', data: error });
     }
+
+    // const smsAPIUrl = "https://www.winsmspro.com/sms/sms/api";
+    // const apiKey = "eUVFc2k9RT1JcGpmQVBJb2FzeWE=";
+    // const senderName = "KHALLASLI";
+
+    // // Convert `tel` to a string and check if it starts with "216"
+    // const telString = String(tel);
+    // const recipientNumber = telString.startsWith("216")
+    //     ? telString
+    //     : `216${telString}`;
+    // const message = `Mr(s) ${name}, your Request to become a PDV has been successfully submitted. Here is your password: ${password}. Please keep your it in a safe place, You can change your password anytime by logging into your account.`;
+
+    // const url = `${smsAPIUrl}?action=send-sms&api_key=${apiKey}&to=${recipientNumber}&from=
+    //     ${senderName}&sms=${encodeURIComponent(message)}`;
+
+    // axios.get(url)
+    //     .then(() => {
+    //         console.log("SMS sent successfully");
+    //     })
+    //     .catch((error) => {
+    //         console.error("Failed to send SMS:", error);
+    //     });
 
     var transporter = nodemailer.createTransport({
         // host: "smtp.mailtrap.io",
@@ -693,60 +718,60 @@ const Lock = async (req, res) => {
     const { lock } = req.body;
     const { id } = req.params;
 
-    if (lock === false) {
-        let existingUser;
-        try {
-            existingUser = await user.findById(id);
-        } catch (error) {
-            return res.status(500).json({ success: false, message: 'internalm error server', data: error });
-        }
+    // if (lock === false) {
+    // let existingUser;
+    // try {
+    //     existingUser = await user.findById(id);
+    // } catch (error) {
+    //     return res.status(500).json({ success: false, message: 'internal error server', data: error });
+    // }
 
-        if (!existingUser) {
-            return res.status(200).json({ success: false, message: 'user donst exist!!', data: null });
-        }
+    // if (!existingUser) {
+    //     return res.status(200).json({ success: false, message: 'user donst exist!!', data: null });
+    // }
 
 
 
-        try {
-            await existingUser.deleteOne();
-        } catch (error) {
-            return res.status(400).json({ success: false, message: 'internal server error', data: error });
-        }
+    // try {
+    //     await existingUser.deleteOne();
+    // } catch (error) {
+    //     return res.status(400).json({ success: false, message: 'internal server error', data: error });
+    // }
 
-        if (existingUser.avatar) {
-            let path = `./uploads/images/${existingUser.avatar}`;
-            if (fs.existsSync(path)) {
-                try {
-                    fs.unlinkSync(path)
-                    //file removed
-                } catch (error) {
-                    console.log(error);
-                    return res.status(500).json({ success: false, message: error, error: error })
-                }
-            }
-        }
-        if (existingUser.cin) {
-            let path = `./uploads/images/${existingUser.cin}`;
-            try {
-                fs.unlinkSync(path)
-                //file removed
-            } catch (error) {
-                console.log(error);
-                return res.status(500).json({ success: false, message: error, error: error })
-            }
-        }
-        if (existingUser.patent) {
-            let path = `./uploads/images/${existingUser.patent}`;
-            try {
-                fs.unlinkSync(path)
-                //file removed
-            } catch (error) {
-                console.log(error);
-                return res.status(500).json({ success: false, message: error, error: error })
-            }
-        }
-        return res.status(200).json({ success: true, message: 'user updated successfully', data: existingUser });
-    }
+    // if (existingUser.avatar) {
+    //     let path = `./uploads/images/${existingUser.avatar}`;
+    //     if (fs.existsSync(path)) {
+    //         try {
+    //             fs.unlinkSync(path)
+    //             //file removed
+    //         } catch (error) {
+    //             console.log(error);
+    //             return res.status(500).json({ success: false, message: error, error: error })
+    //         }
+    //     }
+    // }
+    // if (existingUser.cin) {
+    //     let path = `./uploads/images/${existingUser.cin}`;
+    //     try {
+    //         fs.unlinkSync(path)
+    //         //file removed
+    //     } catch (error) {
+    //         console.log(error);
+    //         return res.status(500).json({ success: false, message: error, error: error })
+    //     }
+    // }
+    // if (existingUser.patent) {
+    //     let path = `./uploads/images/${existingUser.patent}`;
+    //     try {
+    //         fs.unlinkSync(path)
+    //         //file removed
+    //     } catch (error) {
+    //         console.log(error);
+    //         return res.status(500).json({ success: false, message: error, error: error })
+    //     }
+    // }
+    // return res.status(200).json({ success: true, message: 'user updated successfully', data: existingUser });
+    // }
 
     let existingUser;
     try {
