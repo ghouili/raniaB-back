@@ -4,7 +4,6 @@ const generator = require('generate-password');
 const nodemailer = require("nodemailer");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const axios = require('axios');
 
 const test = async (req, res) => {
     return res.send('user controller works');
@@ -632,7 +631,7 @@ const Update_Finance = async (req, res) => {
 
 const Update_PDV = async (req, res) => {
 
-    const { email, name, role, tel, ville, adress, register_comm, shop_name, secter } = req.body;
+    const { email, name, role, tel, ville, adress, register_comm, shop_name, secter, newPass, confirmPass } = req.body;
     const { id } = req.params;
 
     let existingUser;
@@ -645,10 +644,12 @@ const Update_PDV = async (req, res) => {
     if (!existingUser) {
         return res.status(200).json({ success: false, message: 'user donst exist!!', data: null });
     }
-
-    if (req.body.password) {
-
-        existingUser.password = await bcrypt.hash(req.body.password, 10);
+    
+    if (newPass) {
+        if ( confirmPass !== newPass) {
+            return res.status(200).json({ success: false, message: 'Confirm password doesnt match the password!!', data: null });
+        }
+        existingUser.password = await bcrypt.hash(newPass, 10);
     }
 
     if (req.files && req.files.avatar && existingUser.avatar) {
@@ -693,16 +694,35 @@ const Update_PDV = async (req, res) => {
         }
         existingUser.patent = req.files.patent[0].filename;
     }
+    // existingUser.active = true;
+    if (email) {
+        existingUser.email = email;
+    }
+    if (name) {
+        existingUser.name = name;
+    }
+    if (role) {
+        existingUser.role = role;
+    }
+    if (tel) {
+        existingUser.tel = tel;
+    }
+    if (ville) {
+        existingUser.ville = ville;
+    }
+    if (adress) {
+        existingUser.adress = adress;
+    }
+    if (register_comm) {
+        existingUser.register_comm = register_comm;
+    }
+    if (shop_name) {
+        existingUser.shop_name = shop_name;
+    }
+    if (secter) {
+        existingUser.secter = secter;
+    }
 
-    existingUser.email = email;
-    existingUser.name = name;
-    existingUser.role = role;
-    existingUser.tel = tel;
-    existingUser.ville = ville;
-    existingUser.adress = adress;
-    existingUser.register_comm = register_comm;
-    existingUser.shop_name = shop_name;
-    existingUser.secter = secter;
     try {
         await existingUser.save();
     } catch (error) {

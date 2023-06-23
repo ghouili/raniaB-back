@@ -1,8 +1,16 @@
 const express = require('express');
+const server = express();
 const mongoose = require('mongoose');
 const body_parser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const app = require("http").createServer(server);
+const io = require("socket.io")(app, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 //MiddleWares::::
 const authMiddleware = require('./MiddleWare/auth');
@@ -18,7 +26,6 @@ const PdvRouter = require('./routes/pdv');
 const OffreRouter = require('./routes/offre');
 
 const PORT = 5000;
-const server = express();
 server.use(cors({
     origin: '*'
 }));
@@ -40,11 +47,27 @@ server.use('/transaction', TransactionRouter);
 server.use('/pdv', PdvRouter);
 server.use('/offre', OffreRouter);
 
-// Protected route example
-// app.get('/protected', authMiddleware.authenticate, (req, res) => {
-//     res.json({ message: 'This is a protected route' });
-//   });
+// Attach io object to the request object using middleware
+// server.use((req, res, next) => {
+//     req.io = io;
+//     next();
+// });
+
+server.use((req, res, next) => {
+    req.io = io;
+    next();
+  });
+
+io.on("connection", (socket) => {
+    socket.emit("me", socket.id);
+    console.log('user just connected with id :' + socket.id);
+    // Handle disconnect event
+    socket.on("disconnect", () => {
+        console.log('User disconnected with ID: ' + socket.id);
+        // Perform any necessary cleanup or additional logic here
+    });
+});
 
 mongoose.connect('mongodb+srv://admin:admin@pfe.eomjtm9.mongodb.net/?retryWrites=true&w=majority')
-    .then(result => server.listen(PORT, () => console.log(`server is running on port ${PORT}`)))
+    .then(result => app.listen(PORT, () => console.log(`server is running on port ${PORT}`)))
     .catch(err => console.log(err));

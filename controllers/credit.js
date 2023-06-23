@@ -1,5 +1,7 @@
 const credit = require("../models/credit");
 const moment = require("moment");
+// const io = require('../server');
+
 
 const Addcredit = async (req, res) => {
     const {
@@ -120,8 +122,9 @@ const Update = async (req, res) => {
 const Etat = async (req, res) => {
 
     const { etat, interet, duree, grasse, montant_ech } = req.body;
-    console.log(req.body);
     const { id } = req.params;
+    const io = req.app.get('io');
+    console.log(io);
 
     let existingcredit;
     try {
@@ -150,6 +153,10 @@ const Etat = async (req, res) => {
     
     if(interet){
         existingcredit.interet = interet;
+    }
+
+    if(etat === "Acceptee") {
+        io.emit("Alert", {success: true, data: "credit was accepted congrats"});
     }
     
     try {

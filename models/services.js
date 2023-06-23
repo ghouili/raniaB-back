@@ -15,16 +15,4 @@ const ServiceSchema = new mongoose.Schema({
 
 });
 
-// ServiceSchema.pre("remove", async function (next) {
-//     const serviceId = this._id;
-
-//     try {
-//         await offre.deleteMany({ packid: serviceId });
-//         next();
-//     } catch (error) {
-//         next(error);
-//     }
-// });
-
-
 module.exports = mongoose.model('service', ServiceSchema);
