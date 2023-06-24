@@ -47,6 +47,7 @@ const GetAll = async (req, res) => {
         // allcredit = await credit.deleteMany({});
         // allcredit = await credit.find().populate('packid','service');
         allcredit = await credit.find();
+        // await credit.deleteMany({});
     } catch (error) {
         return res.status(500).json({ success: false, message: ' server error ', data: error });
     }

@@ -58,11 +58,6 @@ server.use('/transaction', TransactionRouter);
 server.use('/pdv', PdvRouter);
 server.use('/offre', OffreRouter);
 
-// Attach io object to the request object using middleware
-// server.use((req, res, next) => {
-//     req.io = io;
-//     next();
-// });
 
 server.use((req, res, next) => {
     req.io = io;
@@ -103,7 +98,7 @@ io.on("connection", (socket) => {
                 // await socketIds.updateOne();
                 await existingsocketIds.save();
             } catch (error) {
-                console.log(error);;
+                console.log(error);
             }
         } else {
 
