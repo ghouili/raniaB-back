@@ -633,7 +633,7 @@ const Update_PDV = async (req, res) => {
 
     const { email, name, role, tel, ville, adress, register_comm, shop_name, secter, newPass, confirmPass } = req.body;
     const { id } = req.params;
-
+    console.log(req.body);
     let existingUser;
     try {
         existingUser = await user.findById(id);

@@ -1,6 +1,6 @@
 const credit = require("../models/credit");
+const socketIds = require("../models/socketIds");
 const moment = require("moment");
-// const io = require('../server');
 
 
 const Addcredit = async (req, res) => {
@@ -15,7 +15,7 @@ const Addcredit = async (req, res) => {
         offreid,
         userid
     } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     const Newcredit = new credit({
         montant,
@@ -121,11 +121,10 @@ const Update = async (req, res) => {
 
 const Etat = async (req, res) => {
 
-    const { etat, interet, duree, grasse, montant_ech } = req.body;
+    const { etat, interet, duree, grasse, montant_ech, userid } = req.body;
     const { id } = req.params;
-    const io = req.app.get('io');
-    console.log(io);
 
+    let socketID = null;
     let existingcredit;
     try {
         existingcredit = await credit.findById(id);
@@ -143,29 +142,40 @@ const Etat = async (req, res) => {
         existingcredit.montant_ech = montant_ech;
     }
 
-    if(duree){
+    if (duree) {
         existingcredit.duree = duree;
     }
-    
-    if(grasse){
+
+    if (grasse) {
         existingcredit.grasse = grasse;
     }
-    
-    if(interet){
+
+    if (interet) {
         existingcredit.interet = interet;
     }
 
-    if(etat === "Acceptee") {
-        io.emit("Alert", {success: true, data: "credit was accepted congrats"});
+    if (etat === "Acceptee") {
+        console.log('Accepted');
+        let existingsocketIds;
+        try {
+            existingsocketIds = await socketIds.findOne({ userid: userid });
+        } catch (error) {
+            console.log(error);
+        }
+
+        if (existingsocketIds) {
+            socketID =  existingsocketIds.socketid;
+        }
+        // io.emit("Alert", { success: true, data: "credit was accepted congrats" });
     }
-    
+
     try {
         await existingcredit.save();
     } catch (error) {
         return res.status(500).json({ success: false, message: 'server error', data: error });
     }
 
-    return res.status(200).json({ success: true, message: 'credit updated successfully', data: existingcredit });
+    return res.status(200).json({ success: true, message: 'credit updated successfully', data: existingcredit, socketID });
 
 }
 
