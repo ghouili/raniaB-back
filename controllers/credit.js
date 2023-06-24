@@ -121,7 +121,7 @@ const Update = async (req, res) => {
 
 const Etat = async (req, res) => {
 
-    const { etat, interet, duree, grasse, montant_ech, userid } = req.body;
+    const { etat, interet, duree, grasse, montant_ech } = req.body;
     const { id } = req.params;
 
     let socketID = null;
@@ -158,13 +158,15 @@ const Etat = async (req, res) => {
         console.log('Accepted');
         let existingsocketIds;
         try {
-            existingsocketIds = await socketIds.findOne({ userid: userid });
+            existingsocketIds = await socketIds.findOne({ userid: existingcredit.userid });
         } catch (error) {
             console.log(error);
         }
-
+        console.log(existingsocketIds);
+        
         if (existingsocketIds) {
             socketID =  existingsocketIds.socketid;
+            console.log(socketID);
         }
         // io.emit("Alert", { success: true, data: "credit was accepted congrats" });
     }

@@ -82,8 +82,12 @@ io.on("connection", (socket) => {
     //     console.log("data: ");
     //     console.log(data);
     // });
+
     socket.on("userConnected", async ({ data }) => {
-        console.log("userConnected");
+        console.log("user Connected :");
+        if(!data){
+            return console.log("user id is missing ");
+        }
         let existingsocketIds;
         // Check if socketIds exist ::::
         try {
@@ -96,7 +100,8 @@ io.on("connection", (socket) => {
             // Update socketIds::
             existingsocketIds.socketid = socket.id;
             try {
-                await socketIds.save();
+                // await socketIds.updateOne();
+                await existingsocketIds.save();
             } catch (error) {
                 console.log(error);;
             }
@@ -118,8 +123,9 @@ io.on("connection", (socket) => {
 
     });
 
-    io.on("alertUser", ({ userID, data }) => {
-        io.to(userID).emit("Alert", { success: true, data });
+    socket.on("alertUser", ({ userID, data }) => {
+        console.log(`socket id :   ${userID}`);
+        socket.to(userID).emit("Alert", { success: true, data });
     })
 });
 
